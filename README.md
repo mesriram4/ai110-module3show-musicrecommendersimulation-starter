@@ -22,12 +22,53 @@ Explain your design in plain language.
 Some prompts to answer:
 
 - What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
+  - For example: genre, mood, energy, tempo: 
+
+    + When I asked Claude what features in the dataset can best be used to recommend songs, Claude chose genre, mood, and energy, all for reasons I completely agree with because it aligns with my imitial logic around song choice. Most listeners use genre as a way to identify with the music they like, and genre is an encapsulating label that can best represent other features present within the data. However, a lot of listeners also enjoy exploring new genres but still want songs that best represent what goes on in their day. Mood and energy are both factors that I believe are factors people subconsciously associate with when choosing songs they like. Claude's logic was quite similar to mine. In addition to the encapsulating element of genre, Claude also mentioned that mood and energy best represent other features like valence and danceability, therefore, these features don't have to be considered if mood and energy are similar, if not better, ways for recommending music. 
+
+- What information does your `UserProfile` store: 
+
+    + UserProfile stores information on user preferences regarding genre, mood, and energy (even acoustic). 
+
 - How does your `Recommender` compute a score for each song
+
+    + After a recommendation form Claude and some minor tweaks, genre, mood, and energy have different weights attached to them, with genre having the highest weight and energy having the lowest score. The individual weights I want to assign to each feature is 0.4 for genre, 0.3 for mood, and 0.2 for energy. 
+
 - How do you choose which songs to recommend
 
+    + Claude has created this formula to calculate the total score based on weights added to genre, mood, and energy: 
+      total = 0.40 * genre_score + 0.35 * mood_score + 0.25 * energy_score
+
+    + For each song in the csv file, whichever song matches genre, mood, and energy preferences will automatically be calculated with its weight, then the score calculated before being appended into the song recommendation list. I will be choosing the top 3 songs to recommend based on top three highest scores. 
+
 You can include a simple diagram or bullet list if helpful.
+
+PSEUDOCODE: (Program starts here)
+
++ Assign user preferences in main.py 
++ 
++ read song.csv
++ 
++ create recommended_songs = {}
++ 
++ 
++  
++ 
++ for songs in songs.csv: 
++    take genre, mood, and energy from each song 
++    If genre in the list matches prefernece: 
++       genre score = 1.0 
++    if mood in the list matches preference: 
+        mood_score = 1.0 
+      if energy in list is around the energy of user preference: 
+        eneergy_score = 1.0 - |song.energy - user.energy| 
+      total = (equation we have)
+      append the song name and score to the recommended_string dictionary 
+
++ once the for loop is finished, start reorganizing reccomended_songs dictionary 
++ only return highest three results and print it. 
+    
+
 
 ---
 
