@@ -1,6 +1,23 @@
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
+"""
+MY algorithm recipe for scoring songs: 
+
+1) Score songs based on whether songs are most commonly united by genre, mood, or energy. 
+
+~or~ 
+
+1) Recommend songs with genre having the highest weight, then mood, then energy? 
++ For a simple program, this might be a better criteria. 
+
+2) Note that the algorithm should assign a score to each song, and then recommend songs 
+that are score similarly to the score of the user's preferences. 
+    + More weight goes to genre, then mood, then energy. 
+
+3) 
+"""
+
 @dataclass
 class Song:
     """
