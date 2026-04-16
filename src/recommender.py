@@ -20,18 +20,6 @@ class Song:
     Represents a single track and its audio features.
 
     Required by tests/test_recommender.py
-
-    Attributes:
-        id (int): Unique identifier for the song.
-        title (str): Title of the song.
-        artist (str): Name of the artist or band.
-        genre (str): Musical genre (e.g. 'lofi', 'pop', 'rock').
-        mood (str): Emotional tone of the track (e.g. 'chill', 'happy', 'intense').
-        energy (float): Overall intensity of the track, from 0.0 (calm) to 1.0 (intense).
-        tempo_bpm (float): Beats per minute.
-        valence (float): Musical positivity, from 0.0 (negative) to 1.0 (positive).
-        danceability (float): How suitable the track is for dancing, 0.0 to 1.0.
-        acousticness (float): Likelihood the track is acoustic, 0.0 to 1.0.
     """
     id: int
     title: str
@@ -52,11 +40,6 @@ class UserProfile:
 
     Required by tests/test_recommender.py
 
-    Attributes:
-        favorite_genre (str): The genre the user most wants to hear (e.g. 'lofi').
-        favorite_mood (str): The mood the user is looking for (e.g. 'chill').
-        target_energy (float): Preferred energy level, from 0.0 (calm) to 1.0 (intense).
-        likes_acoustic (bool): Whether the user prefers acoustic-leaning tracks.
     """
     favorite_genre: str
     favorite_mood: str
@@ -177,7 +160,7 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int) -> List[Tuple[D
         # Genre score — binary match
         if song["genre"] == user_prefs["genre"]:
             genre_score = 1.0
-            reasons.append("Genre match (+0.40)")
+            reasons.append("Genre match (+0.20)")
         else:
             genre_score = 0.0
 
@@ -190,10 +173,10 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int) -> List[Tuple[D
 
         # Energy score — proximity, always contributes
         energy_score = 1.0 - abs(song["energy"] - user_prefs["energy"])
-        reasons.append(f"Energy proximity (+{0.20 * energy_score:.2f})")
+        reasons.append(f"Energy proximity (+{0.40 * energy_score:.2f})")
 
         # Weighted total
-        total = 0.40 * genre_score + 0.30 * mood_score + 0.20 * energy_score
+        total = 0.20 * genre_score + 0.30 * mood_score + 0.40 * energy_score
 
         explanation = " | ".join(reasons)
         scored.append((song, total, explanation))
