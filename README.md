@@ -115,6 +115,11 @@ Use this section to document the experiments you ran. For example:
 - What happened when you added tempo or valence to the score
 - How did your system behave for different types of users
 
+(LIST OF SCREENSHOTS W/ ADVERSARIAL PROFILES): 
++ ![alt text](image-1.png)
++ ![alt text](image-2.png)
++ ![alt text](image-3.png)
+
 ---
 
 ## Limitations and Risks
@@ -141,6 +146,10 @@ Write 1 to 2 paragraphs here about what you learned:
 
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
+
++ My biggest learning moment from working on this project is the importance of diversity in a dataset. This could greatly offer much more information, and the right type of information a user is looking for. I used AI tools when recommended by the project, such as Claude. Every single time, I will reread the code and make sure Claude is outputting code that aligned with my pseudocode. This was a process I didn't want AI to be fully independent with. Instead of algorithms offering a fresh new list of songs every refresh, the reocommender will often put together the same order of songs without diversifying or introducing new music. 
+
++ My biggest goal is to also expand this project to make it more impactful, starting by incorporating elements of genre-similarity values, recommended genres list associated with certain genres and moods. That way, Users can get recommended songs that align with something the would be interested in. 
 
 
 ---
