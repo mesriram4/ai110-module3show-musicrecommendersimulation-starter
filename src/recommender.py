@@ -1,28 +1,37 @@
+"""
+Music Recommender Simulation — core recommendation logic.
+
+Scoring formula:
+    total = 0.40 * genre_score + 0.30 * mood_score + 0.20 * energy_score
+
+    genre_score  : 1.0 if genre matches, else 0.0              (weight: 0.40)
+    mood_score   : 1.0 if mood matches,  else 0.0              (weight: 0.30)
+    energy_score : 1.0 - abs(song.energy - user.energy)        (weight: 0.20)
+"""
+
+import csv
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
-"""
-MY algorithm recipe for scoring songs: 
-
-1) Score songs based on whether songs are most commonly united by genre, mood, or energy. 
-
-~or~ 
-
-1) Recommend songs with genre having the highest weight, then mood, then energy? 
-+ For a simple program, this might be a better criteria. 
-
-2) Note that the algorithm should assign a score to each song, and then recommend songs 
-that are score similarly to the score of the user's preferences. 
-    + More weight goes to genre, then mood, then energy. 
-
-3) 
-"""
 
 @dataclass
 class Song:
     """
-    Represents a song and its attributes.
+    Represents a single track and its audio features.
+
     Required by tests/test_recommender.py
+
+    Attributes:
+        id (int): Unique identifier for the song.
+        title (str): Title of the song.
+        artist (str): Name of the artist or band.
+        genre (str): Musical genre (e.g. 'lofi', 'pop', 'rock').
+        mood (str): Emotional tone of the track (e.g. 'chill', 'happy', 'intense').
+        energy (float): Overall intensity of the track, from 0.0 (calm) to 1.0 (intense).
+        tempo_bpm (float): Beats per minute.
+        valence (float): Musical positivity, from 0.0 (negative) to 1.0 (positive).
+        danceability (float): How suitable the track is for dancing, 0.0 to 1.0.
+        acousticness (float): Likelihood the track is acoustic, 0.0 to 1.0.
     """
     id: int
     title: str
@@ -35,47 +44,160 @@ class Song:
     danceability: float
     acousticness: float
 
+
 @dataclass
 class UserProfile:
     """
-    Represents a user's taste preferences.
+    Represents a listener's taste preferences.
+
     Required by tests/test_recommender.py
+
+    Attributes:
+        favorite_genre (str): The genre the user most wants to hear (e.g. 'lofi').
+        favorite_mood (str): The mood the user is looking for (e.g. 'chill').
+        target_energy (float): Preferred energy level, from 0.0 (calm) to 1.0 (intense).
+        likes_acoustic (bool): Whether the user prefers acoustic-leaning tracks.
     """
     favorite_genre: str
     favorite_mood: str
     target_energy: float
     likes_acoustic: bool
 
+
 class Recommender:
     """
-    OOP implementation of the recommendation logic.
+    OOP wrapper around the recommendation logic.
+
     Required by tests/test_recommender.py
+
+    Attributes:
+        songs (List[Song]): The full catalogue of songs available to recommend.
     """
-    def __init__(self, songs: List[Song]):
+
+    def __init__(self, songs: List[Song]) -> None:
+        """
+        Initializes the Recommender with a catalogue of songs.
+
+        Args:
+            songs (List[Song]): List of Song objects loaded from the dataset.
+        """
         self.songs = songs
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
+        """
+        Returns the top-k songs for a given user profile.
+
+        Args:
+            user (UserProfile): The listener's taste preferences.
+            k (int): Number of recommendations to return. Defaults to 5.
+
+        Returns:
+            List[Song]: Up to k songs ranked by relevance to the user's profile.
+        """
         # TODO: Implement recommendation logic
         return self.songs[:k]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
+        """
+        Produces a human-readable explanation of why a song was recommended.
+
+        Args:
+            user (UserProfile): The listener's taste preferences.
+            song (Song): The song being explained.
+
+        Returns:
+            str: A sentence describing which features matched the user's preferences.
+        """
         # TODO: Implement explanation logic
         return "Explanation placeholder"
 
+
 def load_songs(csv_path: str) -> List[Dict]:
     """
-    Loads songs from a CSV file.
-    Required by src/main.py
-    """
-    # TODO: Implement CSV loading logic
-    print(f"Loading songs from {csv_path}...")
-    return []
+    Reads a CSV file and returns each row as a dictionary.
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
+    Numeric fields (id, energy, tempo_bpm, valence, danceability, acousticness)
+    are automatically converted to float so they are ready for calculations.
+    All other fields (title, artist, genre, mood) are kept as strings.
+
     Required by src/main.py
+
+    Args:
+        csv_path (str): Relative or absolute path to the songs CSV file.
+
+    Returns:
+        List[Dict]: A list of song dictionaries, one per row in the CSV.
     """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    numeric_fields = {"id", "energy", "tempo_bpm", "valence", "danceability", "acousticness"}
+    songs = []
+
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        print(f"Loading songs from {csv_path}...")
+        for row in reader:
+            song = {
+                key: float(value) if key in numeric_fields else value
+                for key, value in row.items()
+            }
+            songs.append(song)
+
+    return songs
+
+
+def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int) -> List[Tuple[Dict, float, str]]:
+    """
+    Scores every song against the user's preferences and returns the top-k results.
+
+    Each song is evaluated on three features using a weighted formula:
+
+        total = 0.40 * genre_score + 0.30 * mood_score + 0.20 * energy_score
+
+    genre_score and mood_score are binary (1.0 on match, 0.0 otherwise).
+    energy_score is a proximity value: 1.0 - abs(song.energy - user.energy).
+
+    Required by src/main.py
+
+    Args:
+        user_prefs (Dict): User preferences with keys 'genre' (str),
+                           'mood' (str), and 'energy' (float).
+        songs (List[Dict]): Full list of song dictionaries from load_songs().
+        k (int): Number of top recommendations to return.
+
+    Returns:
+        List[Tuple[Dict, float, str]]: Each entry is a tuple of:
+            - song (Dict): The song dictionary.
+            - score (float): Weighted total score between 0.0 and 1.0.
+            - explanation (str): Pipe-separated reasons describing matched features.
+    """
+    scored = []
+
+    for song in songs:
+        reasons = []
+
+        # Genre score — binary match
+        if song["genre"] == user_prefs["genre"]:
+            genre_score = 1.0
+            reasons.append("Genre match (+0.40)")
+        else:
+            genre_score = 0.0
+
+        # Mood score — binary match
+        if song["mood"] == user_prefs["mood"]:
+            mood_score = 1.0
+            reasons.append("Mood match (+0.30)")
+        else:
+            mood_score = 0.0
+
+        # Energy score — proximity, always contributes
+        energy_score = 1.0 - abs(song["energy"] - user_prefs["energy"])
+        reasons.append(f"Energy proximity (+{0.20 * energy_score:.2f})")
+
+        # Weighted total
+        total = 0.40 * genre_score + 0.30 * mood_score + 0.20 * energy_score
+
+        explanation = " | ".join(reasons)
+        scored.append((song, total, explanation))
+
+    # Sort by score descending, return top k songs
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return scored[:k]
